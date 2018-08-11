@@ -1,3 +1,4 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../paper-material/paper-material.html" />
 <link rel="import" href="../paper-spinner/paper-spinner.html" />
 
@@ -103,9 +104,9 @@ Custom property | Description | Default
   </style>
   <template>
     <script>
-      var lastTouchY=0,
+      let lastTouchY=0,
       touchmoveDisable=function(e){
-        var o=e.touches[0].clientY,
+        let o=e.touches[0].clientY,
         t=o-lastTouchY;
         return lastTouchY=o,
         0==document.querySelectorAll("body")[0].scrollTop&&t>0?void e.preventDefault():void 0
@@ -126,10 +127,13 @@ Custom property | Description | Default
   </template>
 </dom-module>
 <script>
-  ( function () {
-    Polymer({
-      is: 'pull-to-action',
-      properties: {
+    Polymer.setPassiveTouchGestures(true);
+    class PullToAction extends Polymer.Element {
+      static get is() { return 'pull-to-action'; }
+
+      static get properties() {
+
+        return {
         /**
         * The callback action that will be executed
         * when the user releases the pull element
@@ -200,16 +204,17 @@ Custom property | Description | Default
           type: Number,
           value: 0
         },
-      },
+      };
+    }
       /**
-      * Method to check icon has rotated 
+      * Method to check icon has rotated
       * to the correct place before proceeding
       * with the animation
       */
-      _actionTimer: function(){
-        var $this = this;
+      _actionTimer(){
+        let $this = this;
         if (this._spin.toFixed(0) % 360 == 270) {
-          if (1 === actionTrigger) { 
+          if (1 === actionTrigger) {
             Polymer.dom($this.root).querySelector(".refresh").classList.add("hidden"),
             Polymer.dom($this.root).querySelector(".refreshSpinner").classList.remove("hidden"),
             Polymer.dom($this.root).querySelector(".refreshSpinner").setAttribute("active", ""),
@@ -218,18 +223,19 @@ Custom property | Description | Default
             $this._actionTimerEnd();
           }
         } else {
-          $this._spin++, 
+          $this._spin++,
           setTimeout(function() {
             $this._actionTimer();
           }, 1);
         }
-      },
+      }
+
       /**
-      * Method to detect when actionTrigger 
+      * Method to detect when actionTrigger
       * is no longer 1
       */
-      _actionTimerEnd: function(){
-        var $this = this;
+      _actionTimerEnd() {
+        let $this = this;
         if (1 === actionTrigger) {
           setTimeout(function(){
             $this._actionTimerEnd();
@@ -237,14 +243,15 @@ Custom property | Description | Default
         } else {
           this.scaleAway();
         }
-      },
+      }
+
       /**
       * Method to cause refreshIcon
       * to rise back to preset
       * distance
       */
-      bounceToDistance: function(){
-        var $this = this;
+      bounceToDistance() {
+        let $this = this;
         if (this._drag>this.distance) {
           $this._drag-=4,
           $this._spin+=4,
@@ -264,41 +271,44 @@ Custom property | Description | Default
             $this._actionTimer();
           }
         }
-      },
+      }
+
       /**
       * Method to make refreshIcon
       * shrink/scale into nothing
       */
-      scaleAway: function(){
-        var $this = this;
+      scaleAway() {
+        let $this = this;
         Polymer.dom(this.root).querySelector(".refreshShadow").classList.add("scale"),
         setTimeout(function(){
           $this._drag=0,
           Polymer.dom($this.root).querySelector(".refreshShadow").classList.remove("scale"),
           Polymer.dom($this.root).querySelector(".refreshSpinner").removeAttribute("active")
         },500)
-      },
+      }
+
       /**
       * Method to cause refreshIcon
       * to rise of screen if distance
       * is not met on pull down
       */
-      bounceToZero: function(){
-        var $this = this;
+      bounceToZero() {
+        let $this = this;
         if (this._drag > 0) {
           this._drag--,this._spin--,setTimeout(function(){
             $this.bounceToZero()
           },5);
         }
-      },
+      }
+
       /**
       * Updates all the css styles
       * for top, opacity,
       * rotateZ, grayscale, strokeDashoffset
       * and strokeWidth.
       */
-      _updateStyles: function () {
-        var refreshShadow=Polymer.dom(this.root).querySelector(".refreshShadow"),
+      _updateStyles() {
+        let refreshShadow=Polymer.dom(this.root).querySelector(".refreshShadow"),
         refreshIcon=Polymer.dom(this.root).querySelector(".refreshIcon"),
         refreshStem=Polymer.dom(this.root).querySelector(".refreshStem");
         refreshShadow.style.top=(this._drag-50)/3+"px",
@@ -307,12 +317,14 @@ Custom property | Description | Default
         refreshIcon.style.filter="grayscale("+this._desat+"%)",
         refreshStem.style.strokeDashoffset=35>=35*(this._drag/this.distance)?35-35*(this._drag/this.distance):0,
         refreshStem.style.strokeWidth=2>=2*(this._drag/this.distance)?2*(this._drag/this.distance):2;
-      },
+      }
       /**
       * Contains all event listeners
       */
-      attached: function() {
-        var $this = this;
+
+      connectedCallback() {
+        super.connectedCallback();
+        let $this = this;
         /** on touch start set starting touches and reseat animations in case missed. **/
         touchstartHandler=function(a){
           Polymer.dom($this.root).querySelector(".refresh").classList.remove("hidden"),
@@ -322,10 +334,11 @@ Custom property | Description | Default
             $this._lastTouchY=a.touches[0].clientY,
             $this._startTouchY=a.touches[0].clientY;
           }
-        },
+        }
+
         /** on touch move (within container) **/
         touchmoveHandler=function(t){
-          var e=t.touches[0].clientY,
+          let e=t.touches[0].clientY,
           r=e-$this._lastTouchY;
           return $this._lastTouchY=e,
           $this._endTouchY=t.touches[0].clientY,
@@ -349,7 +362,9 @@ Custom property | Description | Default
         document.querySelectorAll($this.container)[0].addEventListener("touchstart",touchstartHandler,!1),
         document.querySelectorAll($this.container)[0].addEventListener("touchmove",touchmoveHandler,!1),
         document.querySelectorAll($this.container)[0].addEventListener("touchend",touchendHandler,!1);
-      },
-    });
-  })();
-</script>
+      }
+    };
+
+    window.customElements.define(PullToAction.is, PullToAction);
+  </script>
+</dom-module>
